@@ -98,7 +98,12 @@
    original_suspects
    extra_suspects))
 
+(defn csv-string
+  "Create a csv string from the sequence of maps"
+  [suspects]
+  (clojure.string/join "\n" (map #(clojure.string/join "," [(:name %) (:glitter-index %)]) suspects)))
+
 (defn -main
   "I don't do a whole lot ... yet."
   [& args]
-  (println (names-of (vampires all_suspects))))
+  (println (csv-string (vampires all_suspects))))
