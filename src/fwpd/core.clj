@@ -45,8 +45,10 @@
   (filter #(>= (:glitter-index %) minimum-glitter) records))
 
 (def original_suspects (into [] (mapify (parse (slurp filename)))))
-(def extra_suspects [{:name "Count Dracula" :glitter-index 10}
-                     {:name "Princess Sparkles" :glitter-index 2}])
+(def extra_suspects [{:name "Count Dracula" :glitter-index "10"}
+                     {:name "Princess Sparkles" :glitter-index "2"}
+                     {:name "Hide from glitter"}
+                     {:name "Unknown glitter" :glitter-index "1.5"}])
 
 (defn vampires
   "Return a list of vampires based on a list of suspects"
@@ -60,10 +62,35 @@
   [suspects]
   (clojure.string/join ", " (map #(:name %) suspects)))
 
+(defn ispresent?
+  "Check if a key is present in the given map"
+  [record key]
+  (not (nil? (record key))))
+
+(defn isvalid?
+  "Check if a value can be parsed by the validating function"
+  [value validating-function]
+  (try (do (validating-function value) true) (catch Exception e false)))
+
+(defn validate
+  "Validate if a record is a valid representation of a suspect based on the key-to-validating-function map"
+  [key-to-validating-function record]
+  (apply = true
+         (map
+          #(and (ispresent? record %) (isvalid? (record %) (key-to-validating-function %)))
+          (keys key-to-validating-function))))
+
 (defn append
-  "Append a new suspect to list of suspects"
+  "Append a new suspect to list of suspects, if the suspect is a valid record"
   [current-suspects new-suspect]
-  (conj current-suspects new-suspect))
+  (if (validate conversions new-suspect)
+    (let [converted-suspect (reduce
+                             (fn [new-map [key val]]
+                               (assoc new-map key ((conversions key) val)))
+                             {}
+                             new-suspect)]
+      (conj current-suspects converted-suspect))
+    current-suspects))
 
 (def all_suspects
   (reduce
