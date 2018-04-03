@@ -26,6 +26,7 @@
        (clojure.string/split string #"\n")))
 
 (defn convert-row
+  "Convert a row from suspects csv to a suspects map"
   [unmapped-row]
   (reduce
    (fn [row-map [vamp-key value]]
@@ -43,14 +44,34 @@
   [minimum-glitter records]
   (filter #(>= (:glitter-index %) minimum-glitter) records))
 
-(def vampires (glitter-filter 3 (mapify (parse (slurp filename)))))
+(def original_suspects (into [] (mapify (parse (slurp filename)))))
+(def extra_suspects [{:name "Count Dracula" :glitter-index 10}
+                     {:name "Princess Sparkles" :glitter-index 2}])
+
+(defn vampires
+  "Return a list of vampires based on a list of suspects"
+  ([]
+   (vampires original_suspects))
+  ([suspects]
+   (glitter-filter 3 suspects)))
 
 (defn names-of
-  "Return the names of the given characters"
-  [characters]
-  (clojure.string/join ", " (map #(:name %) characters)))
+  "Return the names of the given suspects"
+  [suspects]
+  (clojure.string/join ", " (map #(:name %) suspects)))
+
+(defn append
+  "Append a new suspect to list of suspects"
+  [current-suspects new-suspect]
+  (conj current-suspects new-suspect))
+
+(def all_suspects
+  (reduce
+   append
+   original_suspects
+   extra_suspects))
 
 (defn -main
   "I don't do a whole lot ... yet."
   [& args]
-  (println (names-of vampires)))
+  (println (names-of (vampires all_suspects))))
