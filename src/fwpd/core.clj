@@ -45,7 +45,12 @@
 
 (def vampires (glitter-filter 3 (mapify (parse (slurp filename)))))
 
+(defn names-of
+  "Return the names of the given characters"
+  [characters]
+  (clojure.string/join ", " (map #(:name %) characters)))
+
 (defn -main
   "I don't do a whole lot ... yet."
   [& args]
-  (println vampires))
+  (println (names-of vampires)))
